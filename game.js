@@ -88,6 +88,7 @@ function spawn(){
   el.className="enemy";el.textContent=prompt(w,G.dir);
   el.style.top=((G.lane++%5)*20+3)+"%";
   $("arena").appendChild(el);
+  el.style.transform="translateX("+$("arena").clientWidth+"px)";
   G.en.push({w,x:100,el,ans:answers(w,G.dir)});
 }
 function tick(t){
@@ -96,8 +97,9 @@ function tick(t){
   const wave=1+Math.floor(G.killed/8);
   G.sinceSpawn+=dt;
   if(G.sinceSpawn>=Math.max(1.5,4-wave*0.25)/G.speed){G.sinceSpawn=0;spawn()}
+  const W=$("arena").clientWidth;
   for(const e of [...G.en]){
-    e.x-=(5+wave*1.2)*dt*G.speed;e.el.style.left=e.x+"%";
+    e.x-=(5+wave*1.2)*dt*G.speed;e.el.style.transform="translateX("+(e.x/100*W)+"px)";
     if(e.x<=8){
       e.el.remove();G.en.splice(G.en.indexOf(e),1);G.lives--;G.missCount++;
       G.miss[e.w.term]=(G.miss[e.w.term]||0)+1;
@@ -123,6 +125,7 @@ function submit(){
 }
 $("ans").addEventListener("keydown",e=>{if(e.key==="Enter")submit()});
 $("fire").onclick=submit;
+$("menu").onclick=()=>{if(G){G.over=true;G.en=[];document.querySelectorAll(".enemy").forEach(e=>e.remove())}show("setup")};
 $("quit").onclick=()=>{if(G&&!G.over)finish()};
 function finish(){
   G.over=true;show("end");

@@ -20,7 +20,7 @@ button.alt{background:var(--card);color:var(--fg);border:1px solid var(--line)}
 #hud{display:flex;justify-content:space-between;font-weight:600;margin-bottom:8px}
 #arena{position:relative;height:300px;overflow:hidden;background:var(--card);border:2px solid var(--line);border-radius:12px}
 #base{position:absolute;left:0;top:0;bottom:0;width:8%;min-width:34px;background:var(--line);display:flex;align-items:center;justify-content:center;font-size:24px}
-.enemy{position:absolute;max-width:55%;padding:6px 10px;border-radius:18px;background:var(--acc);color:#fff;font-weight:600;box-shadow:0 2px 6px #0003}
+.enemy{position:absolute;left:0;width:max-content;max-width:55%;padding:6px 10px;border-radius:18px;background:var(--acc);color:#fff;font-weight:600;box-shadow:0 2px 6px #0003}
 #msg{min-height:24px;margin:8px 0;color:var(--mut)}
 #ans.bad{border-color:var(--acc);animation:sh .2s}
 @keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -52,7 +52,7 @@ summary{cursor:pointer;color:var(--mut);margin:8px 0}
   <div id="arena"><div id="base">🏰</div></div>
   <div id="msg"></div>
   <div class="row"><input id="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type the meaning, press Enter"><button id="fire">Fire</button></div>
-  <div class="row"><button class="alt" id="quit">End game</button></div>
+  <div class="row"><button class="alt" id="menu">← Menu</button><button class="alt" id="quit">End game</button></div>
 </section>
 
 <section id="end" class="hide">
