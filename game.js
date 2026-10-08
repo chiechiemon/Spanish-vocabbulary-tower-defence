@@ -85,7 +85,7 @@ function spawn(){
   let r=Math.random()*wt.reduce((a,b)=>a+b,0),i=0;
   for(;i<pool.length-1;i++){r-=wt[i];if(r<=0)break}
   const w=pool[i],el=document.createElement("div");
-  el.className="enemy";el.textContent=prompt(w,G.dir);
+  const txt=prompt(w,G.dir);el.className="enemy"+(txt.length>26?" long":"");el.textContent=txt;
   el.style.top=((G.lane++%5)*20+3)+"%";
   $("arena").appendChild(el);
   el.style.transform="translateX("+$("arena").clientWidth+"px)";
