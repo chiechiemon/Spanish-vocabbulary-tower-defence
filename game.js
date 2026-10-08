@@ -67,13 +67,13 @@ function start(){
   try{localStorage.setItem("pd_custom",$("vocab").value)}catch(e){}
   const u=$("unit").value;
   if(G)G.en.forEach(e=>e.el.remove());
-  G={words:u?all.filter(w=>w.unit===u||w.unit.startsWith(u+"_")):all,dir:$("dir").value,lives:$("lives").value==="inf"?Infinity:+$("lives").value,speed:+$("speed").value,missCount:0,score:0,killed:0,en:[],prev:0,sinceSpawn:99,miss:{},missList:[],lane:0,over:false};
+  G={words:u?all.filter(w=>w.unit===u||w.unit.startsWith(u+"_")):all,dir:$("dir").value,lives:$("lives").value==="inf"?Infinity:(+$("lives").value||5),speed:+$("speed").value,missCount:0,score:0,killed:0,en:[],prev:0,sinceSpawn:99,miss:{},missList:[],lane:0,over:false};
   document.querySelectorAll(".enemy").forEach(e=>e.remove());
   show("game");$("msg").textContent="";$("ans").value="";$("ans").focus();hud();
   requestAnimationFrame(tick);
 }
 function hud(){
-  $("lives").textContent=G.lives===Infinity?"❤️ ∞ · missed "+G.missCount:"❤️".repeat(Math.max(G.lives,0));
+  $("hudLives").textContent=G.lives===Infinity?"❤️ ∞ · missed "+G.missCount:"❤️".repeat(Math.max(G.lives,0));
   $("score").textContent="⭐ "+G.score;
   $("wave").textContent="Wave "+(1+Math.floor(G.killed/8));
 }
