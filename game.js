@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 function allWords(){return parse(DATA+"\n"+$("vocab").value)}
 try{const v=localStorage.getItem("pd_custom");if(v){$("vocab").value=v;$("custom").open=true}}catch(e){}
 
-function parse(t){return t.split(/\r?\n/).map(l=>l.split("\t")).filter(c=>c.length>=2&&c[0].trim()&&c[1].trim()).map(c=>({term:c[0].trim(),meaning:c[1].trim(),unit:(c[2]||"").trim()}))}
+function parse(t){return t.split(/\r?\n/).map(l=>l.split("\t")).filter(c=>c.length>=2&&c[0].trim()&&c[1].trim()).map(c=>({term:c[0].trim(),meaning:c[1].trim(),unit:(c[2]||"").trim(),ex:(c[3]||"").trim()}))}
 function norm(s){return s.toLowerCase().replace(/\([^)]*\)/g," ").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[¿¡?!.,;:]/g,"").replace(/\s+/g," ").trim()}
 const STOP=new Set("to the a an of de het een la el los las un una".split(" "));
 const words=s=>{const a=norm(s).split(" ").filter(Boolean);const c=a.filter(x=>!STOP.has(x));return c.length?c:a};
@@ -47,7 +47,7 @@ function display(t){
 function prompt(w,dir){return dir==="es"?display(w.term):w.meaning.split(/\s\/\s/)[0]}
 
 function refreshUnits(){
-  const us=[...new Set(allWords().map(w=>w.unit).filter(Boolean))].sort();
+  const us=[...new Set(allWords().map(w=>w.unit).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   const cur=$("unit").value,g={};
   us.forEach(u=>(g[u.split("_")[0]]=g[u.split("_")[0]]||[]).push(u));
   $("unit").innerHTML='<option value="">All units</option>'+Object.keys(g).map(k=>`<optgroup label="${k}"><option value="${k}">All of ${k}</option>${g[k].map(u=>`<option>${u}</option>`).join("")}</optgroup>`).join("");
@@ -56,7 +56,7 @@ function refreshUnits(){
 $("vocab").addEventListener("input",refreshUnits);
 refreshUnits();
 
-function show(id){["setup","game","end"].forEach(s=>$(s).classList.toggle("hide",s!==id))}
+function show(id){["setup","browse","game","end"].forEach(s=>$(s).classList.toggle("hide",s!==id))}
 let G=null;
 $("go").onclick=start;$("again").onclick=start;$("back").onclick=()=>show("setup");
 
@@ -138,3 +138,28 @@ function finish(){
     box.appendChild(ul);
   }
 }
+
+// ---- Vocabulary browser ----
+function mk(tag,text,cls){const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e}
+function renderBrowse(){
+  const u=$("bunit").value,q=norm($("bsearch").value);
+  let ws=allWords().filter(w=>!u||w.unit===u||w.unit.startsWith(u+"_"));
+  ws=ws.map((w,i)=>[w,i]).sort((a,b)=>a[0].unit.localeCompare(b[0].unit,undefined,{numeric:true})||a[1]-b[1]).map(x=>x[0]);
+  if(q)ws=ws.filter(w=>norm(display(w.term)+" "+w.meaning+" "+w.ex).includes(q));
+  $("bcount").textContent=ws.length+" words";
+  const t=mk("table"),hr=mk("tr");
+  ["Spanish","Meaning","Example"].forEach(h=>hr.appendChild(mk("th",h)));
+  t.appendChild(hr);
+  let last=null;
+  ws.forEach(w=>{
+    if(w.unit!==last){last=w.unit;const r=mk("tr",null,"u"),c=mk("td",w.unit||"Custom words");c.colSpan=3;r.appendChild(c);t.appendChild(r)}
+    const r=mk("tr");
+    r.appendChild(mk("td",display(w.term),"es"));r.appendChild(mk("td",w.meaning));r.appendChild(mk("td",w.ex));
+    t.appendChild(r);
+  });
+  $("btable").textContent="";$("btable").appendChild(t);
+}
+$("browseBtn").onclick=()=>{$("bunit").innerHTML=$("unit").innerHTML;$("bunit").value=$("unit").value;$("bsearch").value="";show("browse");renderBrowse()};
+$("bback").onclick=()=>show("setup");
+$("bunit").onchange=renderBrowse;
+$("bsearch").oninput=renderBrowse;

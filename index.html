@@ -27,6 +27,12 @@ button.alt{background:var(--card);color:var(--fg);border:1px solid var(--line)}
 @keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 li{margin:4px 0}
 #err{color:var(--acc)}
+#btable{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mut);font-weight:600}
+tr.u td{background:var(--line);font-weight:700}
+td.es{font-weight:600;white-space:nowrap}
 summary{cursor:pointer;color:var(--mut);margin:8px 0}
 </style></head><body><main>
 
@@ -45,7 +51,15 @@ summary{cursor:pointer;color:var(--mut);margin:8px 0}
   <select id="lives"><option value="3">Lives: 3</option><option value="5" selected>Lives: 5</option><option value="10">Lives: 10</option><option value="inf">Lives: unlimited</option></select>
   <select id="speed"><option value="0.5">Speed: very slow</option><option value="0.75">Speed: slow</option><option value="1" selected>Speed: normal</option><option value="1.5">Speed: fast</option><option value="2">Speed: very fast</option></select>
 </div>
-<div class="row"><button id="go">Start</button></div>
+<div class="row"><button id="go">Start</button><button class="alt" id="browseBtn">Browse vocabulary</button></div>
+</section>
+
+<section id="browse" class="hide">
+  <h1>Vocabulary</h1>
+  <div class="row"><button class="alt" id="bback">← Back</button></div>
+  <div class="row"><select id="bunit"></select><input id="bsearch" placeholder="Search words..."></div>
+  <p id="bcount"></p>
+  <div id="btable"></div>
 </section>
 
 <section id="game" class="hide">
