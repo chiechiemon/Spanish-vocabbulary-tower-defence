@@ -56,7 +56,7 @@ function refreshUnits(){
 $("vocab").addEventListener("input",refreshUnits);
 refreshUnits();
 
-function show(id){["setup","browse","game","end"].forEach(s=>$(s).classList.toggle("hide",s!==id))}
+function show(id){["setup","browse","progress","game","end"].forEach(s=>$(s).classList.toggle("hide",s!==id));if(id==="setup")updateWeakBtn()}
 let G=null;
 $("go").onclick=start;$("again").onclick=start;$("back").onclick=()=>show("setup");
 
@@ -66,8 +66,11 @@ function start(){
   $("err").textContent="";
   try{localStorage.setItem("pd_custom",$("vocab").value)}catch(e){}
   const u=$("unit").value;
+  let words=u?all.filter(w=>w.unit===u||w.unit.startsWith(u+"_")):all;
+  if($("pool").value==="weak")words=words.filter(weak);
+  if(!words.length){$("err").textContent="You haven't marked any weak words here yet. Tap ☆ next to a word in Browse vocabulary, or in the list after a game.";show("setup");return}
   if(G)G.en.forEach(e=>e.el.remove());
-  G={words:u?all.filter(w=>w.unit===u||w.unit.startsWith(u+"_")):all,dir:$("dir").value,lives:$("lives").value==="inf"?Infinity:(+$("lives").value||5),speed:+$("speed").value,missCount:0,score:0,killed:0,en:[],prev:0,sinceSpawn:99,miss:{},missList:[],lane:0,over:false};
+  G={words,dir:$("dir").value,lives:$("lives").value==="inf"?Infinity:(+$("lives").value||5),speed:+$("speed").value,missCount:0,score:0,killed:0,en:[],prev:0,sinceSpawn:99,miss:{},missList:[],lane:0,over:false};
   document.querySelectorAll(".enemy").forEach(e=>e.remove());
   show("game");$("msg").textContent="";$("ans").value="";$("ans").focus();hud();
   requestAnimationFrame(tick);
@@ -81,7 +84,7 @@ function spawn(){
   const on=new Set(G.en.map(e=>e.w.term));
   const pool=G.words.filter(w=>!on.has(w.term));
   if(!pool.length)return;
-  const wt=pool.map(w=>1+3*(G.miss[w.term]||0));
+  const wt=pool.map(w=>1+(weak(w)?3:0)+(G.miss[w.term]||0));
   let r=Math.random()*wt.reduce((a,b)=>a+b,0),i=0;
   for(;i<pool.length-1;i++){r-=wt[i];if(r<=0)break}
   const w=pool[i],el=document.createElement("div");
@@ -102,7 +105,7 @@ function tick(t){
     e.x-=(5+wave*1.2)*dt*G.speed;e.el.style.transform="translateX("+(e.x/100*W)+"px)";
     if(e.x<=8){
       e.el.remove();G.en.splice(G.en.indexOf(e),1);G.lives--;G.missCount++;
-      G.miss[e.w.term]=(G.miss[e.w.term]||0)+1;
+      G.miss[e.w.term]=(G.miss[e.w.term]||0)+1;{const p=P(e.w);p.m++;p.s=0;saveProg()}
       if(!G.missList.includes(e.w))G.missList.push(e.w);
       $("msg").textContent="💥 "+display(e.w.term)+" = "+e.w.meaning.split(/\s\/\s/)[0];
       hud();
@@ -117,7 +120,7 @@ function submit(){
   const hit=[...G.en].sort((p,q)=>p.x-q.x).find(e=>ok(a,e.ans));
   if(hit){
     hit.el.remove();G.en.splice(G.en.indexOf(hit),1);
-    G.score+=10;G.killed++;$("msg").textContent="✅ "+display(hit.w.term)+" = "+hit.w.meaning.split(/\s\/\s/)[0];
+    G.score+=10;G.killed++;{const p=P(hit.w);p.c++;p.s++;saveProg()}$("msg").textContent="✅ "+display(hit.w.term)+" = "+hit.w.meaning.split(/\s\/\s/)[0];
     $("ans").value="";hud();
   }else{
     $("ans").classList.remove("bad");void $("ans").offsetWidth;$("ans").classList.add("bad");
@@ -132,9 +135,9 @@ function finish(){
   $("final").textContent="Score: "+G.score+" · Words defeated: "+G.killed+" · Missed: "+G.missCount;
   const box=$("missed");box.textContent="";
   if(G.missList.length){
-    const h=document.createElement("p");h.textContent="Words that got through, review these:";box.appendChild(h);
+    const h=document.createElement("p");h.textContent="Words that got through. Tap ☆ to mark the ones you want to practice:";box.appendChild(h);
     const ul=document.createElement("ul");
-    G.missList.forEach(w=>{const li=document.createElement("li");li.textContent=display(w.term)+" = "+w.meaning;ul.appendChild(li)});
+    G.missList.forEach(w=>{const li=document.createElement("li"),sb=mk("button",weak(w)?"★":"☆","star");sb.title="Mark or unmark as weak";sb.onclick=()=>{toggleWeak(w);sb.textContent=weak(w)?"★":"☆"};li.appendChild(sb);li.appendChild(document.createTextNode(" "+display(w.term)+" = "+w.meaning));ul.appendChild(li)});
     box.appendChild(ul);
   }
 }
@@ -145,21 +148,83 @@ function renderBrowse(){
   const u=$("bunit").value,q=norm($("bsearch").value);
   let ws=allWords().filter(w=>!u||w.unit===u||w.unit.startsWith(u+"_"));
   ws=ws.map((w,i)=>[w,i]).sort((a,b)=>a[0].unit.localeCompare(b[0].unit,undefined,{numeric:true})||a[1]-b[1]).map(x=>x[0]);
+  if($("bweak").value==="weak")ws=ws.filter(weak);
   if(q)ws=ws.filter(w=>norm(display(w.term)+" "+w.meaning+" "+w.ex).includes(q));
-  $("bcount").textContent=ws.length+" words";
+  $("bcount").textContent=ws.length+" words"+($("bweak").value==="weak"&&!ws.length?". Tap ☆ next to a word (or in the list after a game) to mark it as weak.":"");
   const t=mk("table"),hr=mk("tr");
-  ["Spanish","Meaning","Example"].forEach(h=>hr.appendChild(mk("th",h)));
+  ["Spanish","Meaning","Example","Weak"].forEach(h=>hr.appendChild(mk("th",h)));
   t.appendChild(hr);
   let last=null;
   ws.forEach(w=>{
-    if(w.unit!==last){last=w.unit;const r=mk("tr",null,"u"),c=mk("td",w.unit||"Custom words");c.colSpan=3;r.appendChild(c);t.appendChild(r)}
+    if(w.unit!==last){last=w.unit;const r=mk("tr",null,"u"),c=mk("td",w.unit||"Custom words");c.colSpan=4;r.appendChild(c);t.appendChild(r)}
     const r=mk("tr");
-    r.appendChild(mk("td",display(w.term),"es"));r.appendChild(mk("td",w.meaning));r.appendChild(mk("td",w.ex));
+    r.appendChild(mk("td",display(w.term),"es"));r.appendChild(mk("td",w.meaning));r.appendChild(mk("td",w.ex));r.appendChild(starCell(w));
     t.appendChild(r);
   });
   $("btable").textContent="";$("btable").appendChild(t);
 }
-$("browseBtn").onclick=()=>{$("bunit").innerHTML=$("unit").innerHTML;$("bunit").value=$("unit").value;$("bsearch").value="";show("browse");renderBrowse()};
+$("browseBtn").onclick=()=>{$("bunit").innerHTML=$("unit").innerHTML;$("bunit").value=$("unit").value;$("bsearch").value="";$("bweak").value="all";show("browse");renderBrowse()};
 $("bback").onclick=()=>show("setup");
 $("bunit").onchange=renderBrowse;
 $("bsearch").oninput=renderBrowse;
+
+// ---- Saved progress (spaced repetition) ----
+let PROG={};
+try{PROG=JSON.parse(localStorage.getItem("pd_progress")||"{}")}catch(e){PROG={}}
+function saveProg(){try{localStorage.setItem("pd_progress",JSON.stringify(PROG))}catch(e){}}
+const P=w=>PROG[w.term]||(PROG[w.term]={c:0,m:0,s:0});
+const getP=w=>PROG[w.term]||{c:0,m:0,s:0};
+const mastered=w=>getP(w).s>=3;
+const weak=w=>!!getP(w).w;
+
+function pstat(ws){let m=0,k=0;ws.forEach(w=>{if(weak(w))k++;else if(mastered(w))m++});return{m,k,n:ws.length}}
+function prow(label,ws){
+  const s=pstat(ws),r=mk("div",null,"prow");
+  r.appendChild(mk("span",label,"l"));
+  const bar=mk("div",null,"bar"),g=mk("i",null,"g"),x=mk("i",null,"r");
+  g.style.width=(100*s.m/s.n)+"%";x.style.width=(100*s.k/s.n)+"%";
+  bar.appendChild(g);bar.appendChild(x);r.appendChild(bar);
+  r.appendChild(mk("span",s.m+"/"+s.n+(s.k?" · "+s.k+" weak":""),"t"));
+  return r;
+}
+function renderProgress(){
+  const all=allWords().filter(w=>w.unit),root=$("ptable");root.textContent="";
+  const t=pstat(all);
+  $("psum").textContent=t.m+" of "+t.n+" words mastered · "+t.k+" weak";
+  const g={};
+  all.forEach(w=>{const k=w.unit.split("_")[0];((g[k]=g[k]||{})[w.unit]=g[k][w.unit]||[]).push(w)});
+  const nat=(a,b)=>a.localeCompare(b,undefined,{numeric:true});
+  Object.keys(g).sort(nat).forEach(k=>{
+    const d=mk("details",null,"g"),sm=mk("summary"),units=g[k];
+    sm.appendChild(prow(k,Object.values(units).flat()));d.appendChild(sm);
+    const inner=mk("div",null,"pin");
+    Object.keys(units).sort(nat).forEach(u=>inner.appendChild(prow(u,units[u])));
+    d.appendChild(inner);root.appendChild(d);
+  });
+}
+$("progBtn").onclick=()=>{show("progress");renderProgress()};
+$("pback").onclick=()=>show("setup");
+let resetTimer;
+$("preset").onclick=()=>{
+  const b=$("preset");
+  if(b.dataset.arm){PROG={};saveProg();delete b.dataset.arm;b.textContent="Reset progress";renderProgress()}
+  else{b.dataset.arm="1";b.textContent="Click again to erase all progress";clearTimeout(resetTimer);resetTimer=setTimeout(()=>{delete b.dataset.arm;b.textContent="Reset progress"},4000)}
+};
+
+// ---- Marking weak words yourself ----
+function toggleWeak(w){const p=P(w);p.w=p.w?0:1;saveProg()}
+function updateWeakBtn(){$("weakBtn").textContent="★ My weak words ("+allWords().filter(weak).length+")"}
+function starCell(w){
+  const td=mk("td"),b=mk("button",weak(w)?"★":"☆","star");
+  b.title="Mark or unmark as weak";
+  b.onclick=()=>{
+    toggleWeak(w);b.textContent=weak(w)?"★":"☆";
+    if($("bweak").value==="weak"&&!weak(w)){td.parentNode.remove();$("bcount").textContent=Math.max(0,parseInt($("bcount").textContent)-1)+" words"}
+  };
+  td.appendChild(b);
+  if(mastered(w)&&!weak(w))td.appendChild(mk("span"," ✓"));
+  return td;
+}
+$("bweak").onchange=renderBrowse;
+$("weakBtn").onclick=()=>{$("bunit").innerHTML=$("unit").innerHTML;$("bunit").value="";$("bsearch").value="";$("bweak").value="weak";show("browse");renderBrowse()};
+updateWeakBtn();

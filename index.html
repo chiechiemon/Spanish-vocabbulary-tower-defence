@@ -28,6 +28,18 @@ button.alt{background:var(--card);color:var(--fg);border:1px solid var(--line)}
 li{margin:4px 0}
 #err{color:var(--acc)}
 #btable{overflow-x:auto}
+.row.wrap{flex-wrap:wrap}
+button.star{background:none;color:var(--acc);padding:0 6px;font-size:20px;line-height:1}
+#missed ul{list-style:none;padding-left:0}
+.prow{display:flex;gap:8px;align-items:center;margin:4px 0}
+.prow .l{width:104px;flex:none;font-size:13px}
+.prow .t{width:96px;flex:none;font-size:12px;color:var(--mut);text-align:right}
+.bar{flex:1;height:10px;background:var(--line);border-radius:5px;overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .g{background:var(--ok)}.bar .r{background:var(--acc)}
+details.g>summary{color:var(--fg);list-style-position:outside}
+details.g>summary .prow{display:inline-flex;width:calc(100% - 24px);vertical-align:middle}
+.pin{padding-left:16px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 th{color:var(--mut);font-weight:600}
@@ -51,15 +63,26 @@ summary{cursor:pointer;color:var(--mut);margin:8px 0}
   <select id="lives"><option value="3">Lives: 3</option><option value="5" selected>Lives: 5</option><option value="10">Lives: 10</option><option value="inf">Lives: unlimited</option></select>
   <select id="speed"><option value="0.5">Speed: very slow</option><option value="0.75">Speed: slow</option><option value="1" selected>Speed: normal</option><option value="1.5">Speed: fast</option><option value="2">Speed: very fast</option></select>
 </div>
-<div class="row"><button id="go">Start</button><button class="alt" id="browseBtn">Browse vocabulary</button></div>
+<div class="row"><select id="pool"><option value="all">Words: all</option><option value="weak">Words: only my weak words</option></select></div>
+<div class="row wrap"><button id="go">Start</button><button class="alt" id="browseBtn">Browse vocabulary</button><button class="alt" id="weakBtn">★ My weak words</button><button class="alt" id="progBtn">My progress</button></div>
 </section>
 
 <section id="browse" class="hide">
   <h1>Vocabulary</h1>
   <div class="row"><button class="alt" id="bback">← Back</button></div>
   <div class="row"><select id="bunit"></select><input id="bsearch" placeholder="Search words..."></div>
+  <div class="row"><select id="bweak"><option value="all">Show: all words</option><option value="weak">Show: only my weak words</option></select></div>
   <p id="bcount"></p>
   <div id="btable"></div>
+</section>
+
+<section id="progress" class="hide">
+  <h1>My progress</h1>
+  <div class="row"><button class="alt" id="pback">← Back</button></div>
+  <p id="psum"></p>
+  <p>A word counts as mastered after 3 correct answers in a row. Weak words are the ones you mark yourself with ☆ (in the list after a game, or in Browse vocabulary). Progress is saved in this browser only.</p>
+  <div id="ptable"></div>
+  <div class="row"><button class="alt" id="preset">Reset progress</button></div>
 </section>
 
 <section id="game" class="hide">
