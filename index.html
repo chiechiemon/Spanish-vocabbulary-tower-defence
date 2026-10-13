@@ -63,6 +63,8 @@ summary{cursor:pointer;color:var(--mut);margin:8px 0}
   <select id="lives"><option value="3">Lives: 3</option><option value="5" selected>Lives: 5</option><option value="10">Lives: 10</option><option value="inf">Lives: unlimited</option></select>
   <select id="speed"><option value="0.5">Speed: very slow</option><option value="0.75">Speed: slow</option><option value="1" selected>Speed: normal</option><option value="1.5">Speed: fast</option><option value="2">Speed: very fast</option></select>
 </div>
+<div class="row"><select id="speak"><option value="off">Voice: off</option><option value="hit">Voice: say the word when I destroy it</option><option value="appear">Voice: say the word when it appears (Spanish → English only)</option></select><select id="voice"><option value="">Voice: automatic</option></select></div>
+<p id="voiceWarn" class="hide">No Spanish voice found on this device, so words may be read with the wrong accent. Check your device's language and voice settings.</p>
 <div class="row"><select id="pool"><option value="all">Words: all</option><option value="weak">Words: only my weak words</option></select></div>
 <div class="row wrap"><button id="go">Start</button><button class="alt" id="browseBtn">Browse vocabulary</button><button class="alt" id="weakBtn">★ My weak words</button><button class="alt" id="progBtn">My progress</button></div>
 </section>

@@ -93,6 +93,7 @@ function spawn(){
   $("arena").appendChild(el);
   el.style.transform="translateX("+$("arena").clientWidth+"px)";
   G.en.push({w,x:100,el,ans:answers(w,G.dir)});
+  if($("speak").value==="appear"&&G.dir==="es")speak(w.term);
 }
 function tick(t){
   if(!G||G.over)return;
@@ -105,7 +106,7 @@ function tick(t){
     e.x-=(5+wave*1.2)*dt*G.speed;e.el.style.transform="translateX("+(e.x/100*W)+"px)";
     if(e.x<=8){
       e.el.remove();G.en.splice(G.en.indexOf(e),1);G.lives--;G.missCount++;
-      G.miss[e.w.term]=(G.miss[e.w.term]||0)+1;{const p=P(e.w);p.m++;p.s=0;saveProg()}
+      G.miss[e.w.term]=(G.miss[e.w.term]||0)+1;{const p=P(e.w);p.m++;p.s=0;saveProg()}if($("speak").value==="hit")speak(e.w.term);
       if(!G.missList.includes(e.w))G.missList.push(e.w);
       $("msg").textContent="💥 "+display(e.w.term)+" = "+e.w.meaning.split(/\s\/\s/)[0];
       hud();
@@ -120,7 +121,7 @@ function submit(){
   const hit=[...G.en].sort((p,q)=>p.x-q.x).find(e=>ok(a,e.ans));
   if(hit){
     hit.el.remove();G.en.splice(G.en.indexOf(hit),1);
-    G.score+=10;G.killed++;{const p=P(hit.w);p.c++;p.s++;saveProg()}$("msg").textContent="✅ "+display(hit.w.term)+" = "+hit.w.meaning.split(/\s\/\s/)[0];
+    G.score+=10;G.killed++;{const p=P(hit.w);p.c++;p.s++;saveProg()}if($("speak").value==="hit")speak(hit.w.term);$("msg").textContent="✅ "+display(hit.w.term)+" = "+hit.w.meaning.split(/\s\/\s/)[0];
     $("ans").value="";hud();
   }else{
     $("ans").classList.remove("bad");void $("ans").offsetWidth;$("ans").classList.add("bad");
@@ -137,7 +138,7 @@ function finish(){
   if(G.missList.length){
     const h=document.createElement("p");h.textContent="Words that got through. Tap ☆ to mark the ones you want to practice:";box.appendChild(h);
     const ul=document.createElement("ul");
-    G.missList.forEach(w=>{const li=document.createElement("li"),sb=mk("button",weak(w)?"★":"☆","star");sb.title="Mark or unmark as weak";sb.onclick=()=>{toggleWeak(w);sb.textContent=weak(w)?"★":"☆"};li.appendChild(sb);li.appendChild(document.createTextNode(" "+display(w.term)+" = "+w.meaning));ul.appendChild(li)});
+    G.missList.forEach(w=>{const li=document.createElement("li"),sb=mk("button",weak(w)?"★":"☆","star");sb.title="Mark or unmark as weak";sb.onclick=()=>{toggleWeak(w);sb.textContent=weak(w)?"★":"☆"};li.appendChild(speakBtn(w.term));li.appendChild(sb);li.appendChild(document.createTextNode(" "+display(w.term)+" = "+w.meaning));ul.appendChild(li)});
     box.appendChild(ul);
   }
 }
@@ -158,7 +159,7 @@ function renderBrowse(){
   ws.forEach(w=>{
     if(w.unit!==last){last=w.unit;const r=mk("tr",null,"u"),c=mk("td",w.unit||"Custom words");c.colSpan=4;r.appendChild(c);t.appendChild(r)}
     const r=mk("tr");
-    r.appendChild(mk("td",display(w.term),"es"));r.appendChild(mk("td",w.meaning));r.appendChild(mk("td",w.ex));r.appendChild(starCell(w));
+    r.appendChild(esCell(w));r.appendChild(mk("td",w.meaning));r.appendChild(exCell(w));r.appendChild(starCell(w));
     t.appendChild(r);
   });
   $("btable").textContent="";$("btable").appendChild(t);
@@ -228,3 +229,44 @@ function starCell(w){
 $("bweak").onchange=renderBrowse;
 $("weakBtn").onclick=()=>{$("bunit").innerHTML=$("unit").innerHTML;$("bunit").value="";$("bsearch").value="";$("bweak").value="weak";show("browse");renderBrowse()};
 updateWeakBtn();
+
+// ---- Pronunciation (browser text-to-speech) ----
+const PRON={"avda.":"avenida","Sr.":"señor","Sra.":"señora","Ud.":"usted","Uds.":"ustedes","etc.":"etcétera","INE":"i ene e"};
+function speakable(t){
+  let s=display(t).replace(/\(([^)]*)\)/g,(m,c)=>{
+    c=c.trim();
+    if(/^(tú|usted|ustedes|vosotros|vosotras|él|ella|nosotros|nosotras|ellos|ellas|yo|vos)$/i.test(c))return " "+c;
+    if(c==="se")return "se";
+    return c.length<=3?"":" "+c;
+  });
+  s=s.replace(/(\S)\/(a|as|os|ra|na|e)(?=\s|$)/g,"$1").replace(/\s+\/\s+/g,", ").replace(/\//g,", ").replace(/\s+/g," ").trim();
+  s=s.split(" ").map(x=>PRON[x]||x).join(" ");
+  return s.replace(/(^|\s)(\S+)\s+\2(?=\s|$)/gi,"$1$2");
+}
+let VOICE=null,warnReady=false,SAVED_VOICE="";
+try{SAVED_VOICE=localStorage.getItem("pd_voice")||"";const sp=localStorage.getItem("pd_speak");if(sp)$("speak").value=sp}catch(e){}
+function pickVoice(){
+  if(typeof speechSynthesis==="undefined")return;
+  const vs=speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));
+  const sel=$("voice"),want=sel.value||SAVED_VOICE;
+  sel.length=1;
+  vs.forEach(v=>sel.add(new Option(v.name+" ("+v.lang+")",v.name)));
+  if(vs.some(v=>v.name===want))sel.value=want;
+  VOICE=vs.find(v=>v.name===sel.value)||vs.find(v=>v.lang.replace("_","-")==="es-ES")||vs[0]||null;
+  if(warnReady)$("voiceWarn").classList.toggle("hide",vs.length>0);
+}
+function speak(text){
+  if(typeof speechSynthesis==="undefined")return;
+  const u=new SpeechSynthesisUtterance(speakable(text));
+  u.lang=VOICE?VOICE.lang:"es-ES";if(VOICE)u.voice=VOICE;u.rate=0.9;
+  speechSynthesis.cancel();speechSynthesis.speak(u);
+}
+function speakBtn(text){const b=mk("button","🔊","star");b.title="Hear the pronunciation";b.onclick=()=>speak(text);return b}
+function esCell(w){const td=mk("td",null,"es");td.appendChild(speakBtn(w.term));td.appendChild(document.createTextNode(" "+display(w.term)));return td}
+function exCell(w){const td=mk("td");if(w.ex){td.appendChild(speakBtn(w.ex));td.appendChild(document.createTextNode(" "+w.ex))}return td}
+$("voice").onchange=()=>{SAVED_VOICE=$("voice").value;try{localStorage.setItem("pd_voice",SAVED_VOICE)}catch(e){}pickVoice()};
+$("speak").onchange=()=>{try{localStorage.setItem("pd_speak",$("speak").value)}catch(e){}};
+if(typeof speechSynthesis!=="undefined"){
+  pickVoice();speechSynthesis.onvoiceschanged=pickVoice;
+  setTimeout(()=>{warnReady=true;pickVoice()},1500);
+}else{$("voiceWarn").textContent="This browser can't read words aloud.";$("voiceWarn").classList.remove("hide")}
