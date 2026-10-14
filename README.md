@@ -13,6 +13,7 @@ Open `index.html` in a browser (double-click it). No install or build step.
 - Forgiving answer matching: ignores accents and filler words, tolerates small typos
 - Mark weak words yourself with a star (after a game or in Browse vocabulary), view them in "My weak words", and practice only them
 - Pronunciation: 🔊 buttons in the vocabulary table and after games, optional auto-speak while playing, voice picker (uses your device's Spanish voices)
+- Meanings can be shown in English, Dutch or both in the vocabulary table
 - Progress saved in your browser, with a progress screen showing a bar per unit
 - Optional box to add your own words
 

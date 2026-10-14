@@ -44,7 +44,7 @@ function display(t){
   }
   return t;
 }
-function prompt(w,dir){return dir==="es"?display(w.term):w.meaning.split(/\s\/\s/)[0]}
+function prompt(w,dir){return dir==="es"?display(w.term):splitMeaning(w.meaning)[0]}
 
 function refreshUnits(){
   const us=[...new Set(allWords().map(w=>w.unit).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
@@ -56,7 +56,7 @@ function refreshUnits(){
 $("vocab").addEventListener("input",refreshUnits);
 refreshUnits();
 
-function show(id){["setup","browse","progress","game","end"].forEach(s=>$(s).classList.toggle("hide",s!==id));if(id==="setup")updateWeakBtn()}
+function show(id){["setup","browse","progress","game","end"].forEach(s=>$(s).classList.toggle("hide",s!==id));if(id==="setup")updateWeakBtn();document.querySelector("main").classList.toggle("wide",id==="browse")}
 let G=null;
 $("go").onclick=start;$("again").onclick=start;$("back").onclick=()=>show("setup");
 
@@ -108,7 +108,7 @@ function tick(t){
       e.el.remove();G.en.splice(G.en.indexOf(e),1);G.lives--;G.missCount++;
       G.miss[e.w.term]=(G.miss[e.w.term]||0)+1;{const p=P(e.w);p.m++;p.s=0;saveProg()}if($("speak").value==="hit")speak(e.w.term);
       if(!G.missList.includes(e.w))G.missList.push(e.w);
-      $("msg").textContent="💥 "+display(e.w.term)+" = "+e.w.meaning.split(/\s\/\s/)[0];
+      $("msg").textContent="💥 "+display(e.w.term)+" = "+splitMeaning(e.w.meaning)[0];
       hud();
       if(G.lives<=0)return finish();
     }
@@ -121,10 +121,10 @@ function submit(){
   const hit=[...G.en].sort((p,q)=>p.x-q.x).find(e=>ok(a,e.ans));
   if(hit){
     hit.el.remove();G.en.splice(G.en.indexOf(hit),1);
-    G.score+=10;G.killed++;{const p=P(hit.w);p.c++;p.s++;saveProg()}if($("speak").value==="hit")speak(hit.w.term);$("msg").textContent="✅ "+display(hit.w.term)+" = "+hit.w.meaning.split(/\s\/\s/)[0];
+    G.score+=10;G.killed++;{const p=P(hit.w);p.c++;p.s++;saveProg()}if($("speak").value==="hit")speak(hit.w.term);$("msg").textContent="✅ "+display(hit.w.term)+" = "+splitMeaning(hit.w.meaning)[0];
     $("ans").value="";hud();
   }else{
-    $("ans").classList.remove("bad");void $("ans").offsetWidth;$("ans").classList.add("bad");
+    $("ans").classList.remove("bad");void $("ans").offsetWidth;$("ans").classList.add("bad");$("ans").value="";
   }
 }
 $("ans").addEventListener("keydown",e=>{if(e.key==="Enter")submit()});
@@ -138,7 +138,7 @@ function finish(){
   if(G.missList.length){
     const h=document.createElement("p");h.textContent="Words that got through. Tap ☆ to mark the ones you want to practice:";box.appendChild(h);
     const ul=document.createElement("ul");
-    G.missList.forEach(w=>{const li=document.createElement("li"),sb=mk("button",weak(w)?"★":"☆","star");sb.title="Mark or unmark as weak";sb.onclick=()=>{toggleWeak(w);sb.textContent=weak(w)?"★":"☆"};li.appendChild(speakBtn(w.term));li.appendChild(sb);li.appendChild(document.createTextNode(" "+display(w.term)+" = "+w.meaning));ul.appendChild(li)});
+    G.missList.forEach(w=>{const li=document.createElement("li"),sb=mk("button",weak(w)?"★":"☆","star");sb.title="Mark or unmark as weak";sb.onclick=()=>{toggleWeak(w);sb.textContent=weak(w)?"★":"☆"};li.appendChild(speakBtn(w.term));li.appendChild(sb);li.appendChild(document.createTextNode(" "+display(w.term)+" = "+meaningShown(w)));ul.appendChild(li)});
     box.appendChild(ul);
   }
 }
@@ -159,7 +159,7 @@ function renderBrowse(){
   ws.forEach(w=>{
     if(w.unit!==last){last=w.unit;const r=mk("tr",null,"u"),c=mk("td",w.unit||"Custom words");c.colSpan=4;r.appendChild(c);t.appendChild(r)}
     const r=mk("tr");
-    r.appendChild(esCell(w));r.appendChild(mk("td",w.meaning));r.appendChild(exCell(w));r.appendChild(starCell(w));
+    r.appendChild(esCell(w));r.appendChild(mk("td",meaningShown(w)));r.appendChild(exCell(w));r.appendChild(starCell(w));
     t.appendChild(r);
   });
   $("btable").textContent="";$("btable").appendChild(t);
@@ -270,3 +270,17 @@ if(typeof speechSynthesis!=="undefined"){
   pickVoice();speechSynthesis.onvoiceschanged=pickVoice;
   setTimeout(()=>{warnReady=true;pickVoice()},1500);
 }else{$("voiceWarn").textContent="This browser can't read words aloud.";$("voiceWarn").classList.remove("hide")}
+
+// ---- English / Dutch meanings ----
+const MFIX={"How are you? (informal/formal) / Hoe gaat het met jou / met u?": ["How are you? (informal/formal)", "Hoe gaat het met jou / met u?"], "What is your name? (informal/formal) / Hoe heet jij / hoe heet u?": ["What is your name? (informal/formal)", "Hoe heet jij / hoe heet u?"], "where are you from? (informal / formal) / waar kom je / komt u vandaan?": ["where are you from? (informal / formal)", "waar kom je / komt u vandaan?"], "to study / to learn / studeren, leren": ["to study / to learn", "studeren, leren"], "world- / global / wereld-": ["world- / global", "wereld-"], "How old are you? / Hoe oud ben jij? / bent u?": ["How old are you?", "Hoe oud ben jij? / bent u?"], "maternity / paternity leave / moederschaps-/vaderschapsverlof": ["maternity / paternity leave", "moederschaps-/vaderschapsverlof"], "What do you think? / Wat vind je / vindt u van?": ["What do you think?", "Wat vind je / vindt u van?"], "the past simple/ de verleden tijd": ["the past simple", "de verleden tijd"]};
+function splitMeaning(m){
+  if(MFIX[m])return MFIX[m];
+  const i=m.indexOf(" / ");
+  return i<0?[m,""]:[m.slice(0,i),m.slice(i+3)];
+}
+function meaningShown(w){
+  const [en,nl]=splitMeaning(w.meaning),m=$("bmlang").value;
+  return m==="en"?en:m==="nl"?(nl||en):w.meaning;
+}
+try{const v=localStorage.getItem("pd_mlang");if(v)$("bmlang").value=v}catch(e){}
+$("bmlang").onchange=()=>{try{localStorage.setItem("pd_mlang",$("bmlang").value)}catch(e){}renderBrowse()};
