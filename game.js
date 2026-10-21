@@ -56,7 +56,7 @@ function refreshUnits(){
 $("vocab").addEventListener("input",refreshUnits);
 refreshUnits();
 
-function show(id){["setup","browse","progress","game","end"].forEach(s=>$(s).classList.toggle("hide",s!==id));if(id==="setup")updateWeakBtn();document.querySelector("main").classList.toggle("wide",id==="browse")}
+function show(id){["setup","browse","progress","game","end","math"].forEach(s=>$(s).classList.toggle("hide",s!==id));if(id==="setup")updateWeakBtn();document.querySelector("main").classList.toggle("wide",id==="browse")}
 let G=null;
 $("go").onclick=start;$("again").onclick=start;$("back").onclick=()=>show("setup");
 

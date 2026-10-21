@@ -16,10 +16,12 @@ Open `index.html` in a browser (double-click it). No install or build step.
 - Meanings can be shown in English, Dutch or both in the vocabulary table
 - Progress saved in your browser, with a progress screen showing a bar per unit
 - Optional box to add your own words
+- Separate **Matemáticas** minigame with addition, subtraction, multiplication and exact division; three difficulty levels; Spanish number words through 1,000,000; feedback and scoring
 
 ## Files
 - `index.html` page and styles
 - `game.js` game logic
+- `math.js` self-contained math minigame and Spanish number spelling
 - `vocab.js` the vocabulary data
 
 ## Adding words permanently
