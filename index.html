@@ -50,6 +50,22 @@ th{color:var(--mut);font-weight:600}
 tr.u td{background:var(--line);font-weight:700}
 td.es{font-weight:600}
 summary{cursor:pointer;color:var(--mut);margin:8px 0}
+.math-card{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:20px;margin:14px 0;text-align:center}
+.math-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.math-top h1{margin:0}
+.difficulty{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
+.difficulty button{flex:1;background:var(--card);color:var(--fg);border:1px solid var(--line)}
+.difficulty button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.equation{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto;align-items:end;gap:12px;margin:24px 0 10px}
+.number-word{font-size:clamp(20px,5vw,34px);font-weight:750;line-height:1.15;overflow-wrap:anywhere}
+.number-digit{display:block;color:var(--mut);font-size:13px;margin-top:7px}
+.operator{font-size:38px;font-weight:800;line-height:1}
+.operator small{display:block;color:var(--mut);font-size:11px;font-weight:600;line-height:1.2;margin-bottom:6px;white-space:nowrap}
+#mathAnswer{text-align:center;font-size:22px;font-weight:700}
+#mathFeedback{min-height:54px;margin:12px 0 0;font-weight:650}
+#mathFeedback.ok{color:var(--ok)}#mathFeedback.bad{color:var(--acc)}
+#mathFeedback span{display:block;color:var(--mut);font-size:14px;font-weight:500;margin-top:4px}
+@media (max-width:520px){.equation{grid-template-columns:1fr auto 1fr auto;gap:7px}.operator{font-size:30px}.number-word{font-size:18px}.math-card{padding:14px}.math-top{align-items:flex-start}}
 </style></head><body><main>
 
 <section id="setup">
@@ -70,7 +86,30 @@ summary{cursor:pointer;color:var(--mut);margin:8px 0}
 <div class="row"><select id="speak"><option value="off">Voice: off</option><option value="hit">Voice: say the word when I destroy it</option><option value="appear">Voice: say the word when it appears (Spanish → English only)</option></select><select id="voice"><option value="">Voice: automatic</option></select></div>
 <p id="voiceWarn" class="hide">No Spanish voice found on this device, so words may be read with the wrong accent. Check your device's language and voice settings.</p>
 <div class="row"><select id="pool"><option value="all">Words: all</option><option value="weak">Words: only my weak words</option></select></div>
-<div class="row wrap"><button id="go">Start</button><button class="alt" id="browseBtn">Browse vocabulary</button><button class="alt" id="weakBtn">★ My weak words</button><button class="alt" id="progBtn">My progress</button></div>
+<div class="row wrap"><button id="go">Start</button><button class="alt" id="mathBtn">Matemáticas</button><button class="alt" id="browseBtn">Browse vocabulary</button><button class="alt" id="weakBtn">★ My weak words</button><button class="alt" id="progBtn">My progress</button></div>
+</section>
+
+<section id="math" class="hide">
+  <div class="math-top"><h1>Matemáticas 🧮</h1><strong id="mathScore">⭐ 0</strong></div>
+  <p>Resuelve la operación. Escribe la respuesta con cifras.</p>
+  <div class="difficulty" aria-label="Difficulty">
+    <button type="button" data-level="easy">Fácil</button>
+    <button type="button" data-level="medium">Medio</button>
+    <button type="button" data-level="hard">Difícil</button>
+  </div>
+  <div class="math-card">
+    <div class="equation" aria-live="polite">
+      <div><div id="mathLeft" class="number-word"></div><span id="mathLeftDigit" class="number-digit"></span></div>
+      <div class="operator"><small id="mathOpTerm"></small><span id="mathOp"></span></div>
+      <div><div id="mathRight" class="number-word"></div><span id="mathRightDigit" class="number-digit"></span></div>
+      <div class="operator"><small>igual a</small><span>=</span></div>
+    </div>
+    <label for="mathAnswer">Tu respuesta</label>
+    <div class="row"><input id="mathAnswer" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Escribe un número"><button id="mathCheck" type="button">Comprobar</button></div>
+    <div id="mathFeedback" role="status" aria-live="polite"></div>
+    <button id="mathNext" type="button" class="hide">Siguiente pregunta →</button>
+  </div>
+  <div class="row"><button class="alt" id="mathBack">← Menú</button></div>
 </section>
 
 <section id="browse" class="hide">
@@ -108,4 +147,5 @@ summary{cursor:pointer;color:var(--mut);margin:8px 0}
 
 </main>
 <script src="vocab.js"></script>
-<script src="game.js"></script></body></html>
+<script src="game.js"></script>
+<script src="math.js"></script></body></html>
