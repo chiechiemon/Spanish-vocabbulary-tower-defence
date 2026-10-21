@@ -65,24 +65,7 @@
 
   if(typeof document==="undefined")return;
   const $=id=>document.getElementById(id);
-  let level="easy",score=0,current=null,answered=false,numberPage=0;
-  const NUMBER_PAGE_SIZE=50;
-  function renderNumberTable(){
-    const start=numberPage*NUMBER_PAGE_SIZE,end=Math.min(1000000,start+NUMBER_PAGE_SIZE-1);
-    const table=document.createElement("table"),head=document.createElement("tr");
-    ["Número","En español"].forEach(text=>{const th=document.createElement("th");th.textContent=text;head.appendChild(th)});table.appendChild(head);
-    for(let n=start;n<=end;n++){
-      const row=document.createElement("tr"),digits=document.createElement("td"),words=document.createElement("td");
-      digits.textContent=n.toLocaleString("es-ES");words.textContent=numberToSpanish(n);row.appendChild(digits);row.appendChild(words);table.appendChild(row);
-    }
-    $("mathNumberTable").replaceChildren(table);$("numberRange").textContent=start.toLocaleString("es-ES")+"–"+end.toLocaleString("es-ES");
-    $("numberPrev").disabled=start===0;$("numberNext").disabled=end===1000000;
-  }
-  function jumpToNumber(){
-    const n=Number($("numberJump").value);
-    if(!Number.isInteger(n)||n<0||n>1000000)return;
-    numberPage=Math.floor(n/NUMBER_PAGE_SIZE);renderNumberTable();
-  }
+  let level="easy",score=0,current=null,answered=false;
   function selectLevel(next){
     level=next;score=0;
     document.querySelectorAll("[data-level]").forEach(b=>b.classList.toggle("active",b.dataset.level===level));
@@ -113,8 +96,4 @@
   $("mathCheck").onclick=checkAnswer;$("mathSkip").onclick=nextQuestion;$("mathNext").onclick=nextQuestion;
   $("mathAnswer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer()});
   document.querySelectorAll("[data-level]").forEach(b=>b.onclick=()=>selectLevel(b.dataset.level));
-  $("mathNumbers").addEventListener("toggle",()=>{if($("mathNumbers").open&&!$("mathNumberTable").firstChild)renderNumberTable()});
-  $("numberGo").onclick=jumpToNumber;$("numberJump").addEventListener("keydown",e=>{if(e.key==="Enter")jumpToNumber()});
-  $("numberPrev").onclick=()=>{if(numberPage>0){numberPage--;renderNumberTable()}};
-  $("numberNext").onclick=()=>{if((numberPage+1)*NUMBER_PAGE_SIZE<=1000000){numberPage++;renderNumberTable()}};
 })(typeof window!=="undefined"?window:globalThis);
