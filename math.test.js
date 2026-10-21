@@ -1,5 +1,5 @@
 const assert=require("node:assert/strict");
-const {numberToSpanish,makeQuestion}=require("./math.js");
+const {numberToSpanish,makeQuestion,LEVELS}=require("./math.js");
 
 const cases={
   0:"cero",16:"dieciséis",21:"veintiuno",22:"veintidós",26:"veintiséis",31:"treinta y uno",
@@ -17,8 +17,16 @@ for(const level of ["easy","medium","hard"]){
       const q=makeQuestion(level,Math.random,operator);
       assert.ok(Number.isInteger(q.answer),`${level} ${operator} answer should be an integer`);
       assert.ok(q.answer>=0&&q.answer<=1000000,`${level} ${operator} answer out of range`);
-      if(operator==="−")assert.ok(q.left>=q.right,"subtraction must be non-negative");
-      if(operator==="÷")assert.equal(q.left%q.right,0,"division must be exact");
+      if(operator==="+")assert.ok(q.right<=LEVELS[level].change,"addition should stay mental-math friendly");
+      if(operator==="−"){
+        assert.ok(q.left>=q.right,"subtraction must be non-negative");
+        assert.ok(q.right<=LEVELS[level].change,"subtraction should stay mental-math friendly");
+      }
+      if(operator==="×")assert.ok(q.right<=10,"multiplication should use a small factor");
+      if(operator==="÷"){
+        assert.equal(q.left%q.right,0,"division must be exact");
+        assert.ok(q.right<=10,"division should use a small divisor");
+      }
     }
   }
 }

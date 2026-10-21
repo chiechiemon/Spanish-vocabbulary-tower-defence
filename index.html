@@ -16,6 +16,7 @@ textarea{height:150px;font-size:13px}
 .row{display:flex;gap:8px;margin:8px 0}
 button{padding:10px 16px;border:0;border-radius:8px;background:var(--acc);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 button.alt{background:var(--card);color:var(--fg);border:1px solid var(--line)}
+button:disabled{opacity:.45;cursor:not-allowed}
 .hide{display:none}
 #hud{display:flex;justify-content:space-between;font-weight:600;margin-bottom:8px}
 #arena{position:relative;height:300px;overflow:hidden;background:var(--card);border:2px solid var(--line);border-radius:12px}
@@ -66,6 +67,14 @@ summary{cursor:pointer;color:var(--mut);margin:8px 0}
 #mathFeedback{min-height:54px;margin:12px 0 0;font-weight:650}
 #mathFeedback.ok{color:var(--ok)}#mathFeedback.bad{color:var(--acc)}
 #mathFeedback span{display:block;color:var(--mut);font-size:14px;font-weight:500;margin-top:4px}
+.math-controls button{flex:1}
+.math-reference{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 16px 12px}
+.math-reference summary{color:var(--fg);font-weight:700;padding:10px 0}
+.number-nav{align-items:center;justify-content:space-between}
+.number-nav span{color:var(--mut);font-size:13px;text-align:center}
+#mathNumberTable{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+#mathNumberTable tr:last-child td{border-bottom:0}
+#mathNumberTable td:first-child{width:34%;font-variant-numeric:tabular-nums}
 @media (max-width:520px){.number-word{padding:13px 12px;font-size:20px}.math-card{padding:14px}.math-top{align-items:flex-start}}
 </style></head><body><main>
 
@@ -106,10 +115,18 @@ summary{cursor:pointer;color:var(--mut);margin:8px 0}
       <div class="operator-line equals-line"><span>son (es)</span><strong>=</strong></div>
     </div>
     <label for="mathAnswer">Tu respuesta</label>
-    <div class="row"><input id="mathAnswer" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Escribe un número"><button id="mathCheck" type="button">Comprobar</button></div>
+    <input id="mathAnswer" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Escribe un número">
+    <div class="row math-controls"><button id="mathCheck" type="button">Comprobar</button><button id="mathSkip" type="button" class="alt">Saltar</button></div>
     <div id="mathFeedback" role="status" aria-live="polite"></div>
     <button id="mathNext" type="button" class="hide">Siguiente pregunta →</button>
   </div>
+  <details id="mathNumbers" class="math-reference">
+    <summary>Tabla de números (0–1.000.000)</summary>
+    <p>Consulta cualquier número y su forma escrita en español.</p>
+    <div class="row"><input id="numberJump" type="number" min="0" max="1000000" inputmode="numeric" placeholder="Ir al número"><button id="numberGo" type="button">Ir</button></div>
+    <div id="mathNumberTable"></div>
+    <div class="row number-nav"><button id="numberPrev" type="button" class="alt">← Anteriores</button><span id="numberRange"></span><button id="numberNext" type="button" class="alt">Siguientes →</button></div>
+  </details>
   <div class="row"><button class="alt" id="mathBack">← Menú</button></div>
 </section>
 

@@ -11,9 +11,9 @@
     "÷":{term:"dividido entre",apply:(a,b)=>a/b}
   };
   const LEVELS={
-    easy:{max:20,factor:10,divisor:10},
-    medium:{max:1000,factor:25,divisor:25},
-    hard:{max:1000000,factor:1000,divisor:1000}
+    easy:{max:20,change:10,factor:10,round:1},
+    medium:{max:1000,change:25,factor:10,round:10},
+    hard:{max:1000000,change:100,factor:10,round:1000}
   };
 
   function underHundred(n){
@@ -44,14 +44,16 @@
     const operator=forcedOperator||Object.keys(OPS)[randomInt(0,3,rng)];
     let left,right;
     if(operator==="+"){
-      left=randomInt(0,cfg.max,rng);right=randomInt(0,cfg.max-left,rng);
+      left=randomInt(0,cfg.max,rng);right=randomInt(0,Math.min(cfg.change,cfg.max-left),rng);
     }else if(operator==="−"){
-      left=randomInt(0,cfg.max,rng);right=randomInt(0,left,rng);
+      left=randomInt(0,cfg.max,rng);right=randomInt(0,Math.min(cfg.change,left),rng);
     }else if(operator==="×"){
-      left=randomInt(0,cfg.factor,rng);right=randomInt(0,Math.min(cfg.factor,left?Math.floor(cfg.max/left):cfg.factor),rng);
+      right=randomInt(0,cfg.factor,rng);
+      const maxBase=right?Math.floor(cfg.max/right/cfg.round):Math.floor(cfg.max/cfg.round);
+      left=randomInt(0,maxBase,rng)*cfg.round;
     }else{
-      right=randomInt(1,cfg.divisor,rng);
-      const quotient=randomInt(0,Math.min(cfg.factor,Math.floor(cfg.max/right)),rng);
+      right=randomInt(1,cfg.factor,rng);
+      const quotient=randomInt(0,Math.floor(cfg.max/right/cfg.round),rng)*cfg.round;
       left=right*quotient;
     }
     return{left,right,operator,term:OPS[operator].term,answer:OPS[operator].apply(left,right)};
@@ -63,7 +65,24 @@
 
   if(typeof document==="undefined")return;
   const $=id=>document.getElementById(id);
-  let level="easy",score=0,current=null,answered=false;
+  let level="easy",score=0,current=null,answered=false,numberPage=0;
+  const NUMBER_PAGE_SIZE=50;
+  function renderNumberTable(){
+    const start=numberPage*NUMBER_PAGE_SIZE,end=Math.min(1000000,start+NUMBER_PAGE_SIZE-1);
+    const table=document.createElement("table"),head=document.createElement("tr");
+    ["Número","En español"].forEach(text=>{const th=document.createElement("th");th.textContent=text;head.appendChild(th)});table.appendChild(head);
+    for(let n=start;n<=end;n++){
+      const row=document.createElement("tr"),digits=document.createElement("td"),words=document.createElement("td");
+      digits.textContent=n.toLocaleString("es-ES");words.textContent=numberToSpanish(n);row.appendChild(digits);row.appendChild(words);table.appendChild(row);
+    }
+    $("mathNumberTable").replaceChildren(table);$("numberRange").textContent=start.toLocaleString("es-ES")+"–"+end.toLocaleString("es-ES");
+    $("numberPrev").disabled=start===0;$("numberNext").disabled=end===1000000;
+  }
+  function jumpToNumber(){
+    const n=Number($("numberJump").value);
+    if(!Number.isInteger(n)||n<0||n>1000000)return;
+    numberPage=Math.floor(n/NUMBER_PAGE_SIZE);renderNumberTable();
+  }
   function selectLevel(next){
     level=next;score=0;
     document.querySelectorAll("[data-level]").forEach(b=>b.classList.toggle("active",b.dataset.level===level));
@@ -74,7 +93,7 @@
     $("mathLeft").textContent=numberToSpanish(current.left);
     $("mathRight").textContent=numberToSpanish(current.right);
     $("mathOp").textContent=current.operator;$("mathOpTerm").textContent=current.term;
-    $("mathAnswer").value="";$("mathAnswer").disabled=false;$("mathCheck").classList.remove("hide");
+    $("mathAnswer").value="";$("mathAnswer").disabled=false;$("mathCheck").classList.remove("hide");$("mathSkip").classList.remove("hide");
     $("mathNext").classList.add("hide");$("mathFeedback").textContent="";$("mathFeedback").className="";
     $("mathScore").textContent="⭐ "+score;$("mathAnswer").focus();
   }
@@ -87,11 +106,15 @@
     $("mathScore").textContent="⭐ "+score;
     $("mathFeedback").className=correct?"ok":"bad";
     $("mathFeedback").innerHTML=(correct?"¡Correcto! ✅":"Incorrecto ❌")+"<span>La respuesta es "+current.answer.toLocaleString("es-ES")+": "+numberToSpanish(current.answer)+".</span>";
-    $("mathAnswer").disabled=true;$("mathCheck").classList.add("hide");$("mathNext").classList.remove("hide");$("mathNext").focus();
+    $("mathAnswer").disabled=true;$("mathCheck").classList.add("hide");$("mathSkip").classList.add("hide");$("mathNext").classList.remove("hide");$("mathNext").focus();
   }
   $("mathBtn").onclick=()=>{show("math");selectLevel(level)};
   $("mathBack").onclick=()=>show("setup");
-  $("mathCheck").onclick=checkAnswer;$("mathNext").onclick=nextQuestion;
+  $("mathCheck").onclick=checkAnswer;$("mathSkip").onclick=nextQuestion;$("mathNext").onclick=nextQuestion;
   $("mathAnswer").addEventListener("keydown",e=>{if(e.key==="Enter")checkAnswer()});
   document.querySelectorAll("[data-level]").forEach(b=>b.onclick=()=>selectLevel(b.dataset.level));
+  $("mathNumbers").addEventListener("toggle",()=>{if($("mathNumbers").open&&!$("mathNumberTable").firstChild)renderNumberTable()});
+  $("numberGo").onclick=jumpToNumber;$("numberJump").addEventListener("keydown",e=>{if(e.key==="Enter")jumpToNumber()});
+  $("numberPrev").onclick=()=>{if(numberPage>0){numberPage--;renderNumberTable()}};
+  $("numberNext").onclick=()=>{if((numberPage+1)*NUMBER_PAGE_SIZE<=1000000){numberPage++;renderNumberTable()}};
 })(typeof window!=="undefined"?window:globalThis);

@@ -16,7 +16,7 @@ Open `index.html` in a browser (double-click it). No install or build step.
 - Meanings can be shown in English, Dutch or both in the vocabulary table
 - Progress saved in your browser, with a progress screen showing a bar per unit
 - Optional box to add your own words
-- Separate **Matemáticas** minigame with addition, subtraction, multiplication and exact division; three difficulty levels; Spanish number words through 1,000,000; feedback and scoring
+- Separate **Matemáticas** minigame with mental-math-friendly addition, subtraction, multiplication and exact division; three difficulty levels; Spanish number words and a browsable number table through 1,000,000; skip, feedback and scoring controls
 
 ## Files
 - `index.html` page and styles
