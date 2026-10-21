@@ -73,8 +73,6 @@
     current=makeQuestion(level);answered=false;
     $("mathLeft").textContent=numberToSpanish(current.left);
     $("mathRight").textContent=numberToSpanish(current.right);
-    $("mathLeftDigit").textContent=current.left.toLocaleString("es-ES");
-    $("mathRightDigit").textContent=current.right.toLocaleString("es-ES");
     $("mathOp").textContent=current.operator;$("mathOpTerm").textContent=current.term;
     $("mathAnswer").value="";$("mathAnswer").disabled=false;$("mathCheck").classList.remove("hide");
     $("mathNext").classList.add("hide");$("mathFeedback").textContent="";$("mathFeedback").className="";
